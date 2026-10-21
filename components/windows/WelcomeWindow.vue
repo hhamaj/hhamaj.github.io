@@ -3,7 +3,7 @@ import { onMounted, onUnmounted, ref } from 'vue'
 import { site, techBadges, tips, jokes } from '~/data/site'
 import { useWindowManager } from '~/composables/useWindowManager'
 import { useMsgBox } from '~/composables/useMsgBox'
-import profileData from '~/data/github-profile.json'
+import profileData from '~/data/gitlab-profile.json'
 
 const profile = profileData.profile
 const { open } = useWindowManager()
@@ -122,11 +122,11 @@ const dontClick = () => {
           {{ link.label }}
         </button>
         <a
-          :href="site.github"
+          :href="site.gitlab"
           target="_blank"
           rel="noopener"
           class="win98-btn font-ui text-[13px] no-underline"
-          >GitHub ↗</a
+          >GitLab ↗</a
         >
       </nav>
 

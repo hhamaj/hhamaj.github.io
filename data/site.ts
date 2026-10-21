@@ -1,7 +1,7 @@
 /**
  * All hand-written site content lives here — presentation components import
- * from this file and never hardcode copy. Machine-generated GitHub data stays
- * in the sibling github-*.json files.
+ * from this file and never hardcode copy. Machine-generated GitLab data stays
+ * in the sibling gitlab-*.json files.
  */
 
 export type CurrentStatus =
@@ -37,7 +37,7 @@ export const site = {
     'currently learning: systems programming, compilers, graphics, and whatever rabbit hole i fall into next.',
   ],
   email: 'mehmethamzaakca@tutamail.com',
-  github: 'https://github.com/hamajj',
+  gitlab: 'https://gitlab.com/hamajj',
   marquee:
     '~*~ welcome to my homepage ~*~ this site is best viewed at 800x600 ~*~ you are visitor number 000001 ~*~ sign my guestbook ~*~ under construction since 2026 ~*~',
 }
@@ -75,33 +75,30 @@ export const languageFallback = {
 }
 
 /**
- * "Currently Working On" — seeded from real repositories on GitHub.
+ * "Currently Working On" — seeded from real repositories.
  * Edit freely; keep notes honest.
  */
 export const currentlyWorkingOn: CurrentlyEntry[] = [
   {
-    name: 'hamajj.github.io',
+    name: 'hamajj.gitlab.io',
     note: 'this website. it is always half-finished on purpose.',
     status: 'In Development',
-    url: 'https://github.com/hamajj/hamajj.github.io',
+    url: 'https://gitlab.com/hamajj/hamajj.gitlab.io',
   },
   {
     name: 'ranalang',
     note: 'a little language experiment in Go. mostly parsers, mostly questions.',
     status: 'In Development',
-    url: 'https://github.com/hamajj/ranalang',
   },
   {
     name: 'hsdwm',
     note: "Hamajj's Super Duper Window Manager. windows, but angry.",
     status: 'Experimenting',
-    url: 'https://github.com/hamajj/hsdwm',
   },
   {
     name: 'krypton',
     note: 'hiding messages inside images. pixels keep secrets well.',
     status: 'On Hold',
-    url: 'https://github.com/hamajj/krypton',
   },
   {
     name: 'a rust project (soon™)',

@@ -1,0 +1,20 @@
+# Builds the static site and publishes it with GitLab Pages.
+# Optional CI/CD variable: GITLAB_TOKEN (read_api) so the sync script can read the profile bio.
+pages:
+  image: node:20
+  cache:
+    key:
+      files:
+        - package-lock.json
+    paths:
+      - .npm/
+  script:
+    - npm ci --cache .npm --prefer-offline
+    - npm run generate
+  pages:
+    publish: .output/public
+  artifacts:
+    paths:
+      - .output/public
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH

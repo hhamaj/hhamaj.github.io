@@ -6,13 +6,14 @@ const rootDir = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const dataDir = resolve(rootDir, 'data')
 await loadDotEnv()
 
-const username = process.env.GITHUB_USERNAME || 'hamajj'
-const githubToken = process.env.GITHUB_TOKEN
+const username = process.env.GITLAB_USERNAME || 'hamajj'
+const gitlabToken = process.env.GITLAB_TOKEN
+const gitlabUrl = (process.env.GITLAB_URL || 'https://gitlab.com').replace(/\/$/, '')
+const api = `${gitlabUrl}/api/v4`
 
 const headers = {
-  Accept: 'application/vnd.github+json',
   'User-Agent': `${username}-portfolio-site`,
-  ...(githubToken ? { Authorization: `Bearer ${githubToken}` } : {}),
+  ...(gitlabToken ? { 'PRIVATE-TOKEN': gitlabToken } : {}),
 }
 
 const defaultProfile = {
@@ -21,7 +22,7 @@ const defaultProfile = {
     login: username,
     bio: 'Hobbyist Web & Systems-Level Developer',
     avatar: '',
-    html_url: `https://github.com/${username}`,
+    html_url: `${gitlabUrl}/${username}`,
   },
 }
 
@@ -98,7 +99,10 @@ async function writeJson(filename, data) {
 async function downloadFavicon(avatarUrl) {
   if (!avatarUrl) return
   try {
-    const response = await fetch(avatarUrl, { headers })
+    // Gravatar serves a generated identicon when no avatar is set; ask for a
+    // 404 instead so the previous favicon is kept.
+    const url = avatarUrl.replace(/([?&])d=identicon/, '$1d=404')
+    const response = await fetch(url, { headers })
     if (!response.ok) {
       throw new Error(`${response.status} ${response.statusText}`)
     }
@@ -123,13 +127,22 @@ async function downloadFavicon(avatarUrl) {
 function toProfile(user) {
   return {
     profile: {
-      name: user.name ?? username,
-      login: user.login ?? username,
-      bio: user.bio ?? defaultProfile.profile.bio,
+      name: user.name?.replace(/\s+/g, ' ').trim() || username,
+      login: user.username ?? username,
+      bio: user.bio?.trim() || defaultProfile.profile.bio,
       avatar: user.avatar_url ?? '',
-      html_url: user.html_url ?? defaultProfile.profile.html_url,
+      html_url: user.web_url ?? defaultProfile.profile.html_url,
     },
   }
+}
+
+async function fetchProfile() {
+  const [user] = await fetchJson(`${api}/users?username=${encodeURIComponent(username)}`)
+  if (!user) throw new Error(`GitLab user ${username} not found`)
+
+  // The public lookup omits bio; the full record needs an authenticated request.
+  if (!gitlabToken) return toProfile(user)
+  return toProfile(await fetchJson(`${api}/users/${user.id}`))
 }
 
 function readmeExcerpt(markdown) {
@@ -178,11 +191,17 @@ function readmeExcerpt(markdown) {
   return `${text.slice(0, 217).replace(/\s+\S*$/, '')}…`
 }
 
-async function fetchReadmeExcerpt(repoName) {
+async function fetchReadmeExcerpt(project) {
+  // readme_url looks like https://gitlab.com/<ns>/<repo>/-/blob/<branch>/README.md
+  const marker = `/-/blob/${project.default_branch}/`
+  const markerIndex = project.readme_url?.indexOf(marker) ?? -1
+  if (markerIndex === -1) return null
+  const path = project.readme_url.slice(markerIndex + marker.length)
+
   try {
     const response = await fetch(
-      `https://api.github.com/repos/${username}/${repoName}/readme`,
-      { headers: { ...headers, Accept: 'application/vnd.github.raw' } },
+      `${api}/projects/${project.id}/repository/files/${encodeURIComponent(path)}/raw?ref=${encodeURIComponent(project.default_branch)}`,
+      { headers },
     )
     if (!response.ok) return null
     return readmeExcerpt(await response.text())
@@ -191,20 +210,31 @@ async function fetchReadmeExcerpt(repoName) {
   }
 }
 
-async function toRepos(repos) {
-  const active = repos.filter((repo) => !repo.fork && !repo.archived)
+async function fetchPrimaryLanguage(project) {
+  try {
+    const languages = await fetchJson(`${api}/projects/${project.id}/languages`)
+    const [top] = Object.entries(languages).sort((a, b) => b[1] - a[1])
+    return top?.[0] ?? null
+  } catch {
+    return null
+  }
+}
+
+async function toRepos(projects) {
+  const active = projects.filter((project) => !project.forked_from_project && !project.archived)
   const mapped = []
 
-  for (const repo of active) {
-    const hasDescription = Boolean(repo.description?.trim())
-    const readme = hasDescription ? null : await fetchReadmeExcerpt(repo.name)
+  for (const project of active) {
+    const hasDescription = Boolean(project.description?.trim())
+    const readme = hasDescription ? null : await fetchReadmeExcerpt(project)
+    const language = await fetchPrimaryLanguage(project)
 
     mapped.push({
-      title: repo.name?.toUpperCase() ?? 'UNKNOWN',
-      desc: repo.description ?? 'No description.',
-      tags: [repo.language ?? 'UNKNOWN', 'GITHUB'],
-      url: repo.html_url,
-      topics: repo.topics ?? [],
+      title: project.name?.toUpperCase() ?? 'UNKNOWN',
+      desc: project.description?.trim() || 'No description.',
+      tags: [language ?? 'UNKNOWN', 'GITLAB'],
+      url: project.web_url,
+      topics: project.topics ?? [],
       ...(readme ? { readme } : {}),
     })
   }
@@ -212,73 +242,29 @@ async function toRepos(repos) {
   return mapped
 }
 
-function contributionLevelToNumber(level) {
-  return {
-    NONE: 0,
-    FIRST_QUARTILE: 1,
-    SECOND_QUARTILE: 2,
-    THIRD_QUARTILE: 3,
-    FOURTH_QUARTILE: 4,
-  }[level] ?? 0
-}
-
-function normalizeContributionCalendar(calendar) {
-  return calendar.weeks.flatMap((week) =>
-    week.contributionDays.map((day) => ({
-      date: day.date,
-      count: day.contributionCount,
-      level: contributionLevelToNumber(day.contributionLevel),
-    })),
-  )
+// GitLab's calendar only gives counts, so bucket them into GitHub-style
+// quartile levels relative to the busiest day.
+function toContributionLevel(count, max) {
+  if (!count || !max) return 0
+  return Math.min(4, Math.ceil((count / max) * 4))
 }
 
 async function fetchContributionCalendar() {
-  if (!githubToken) {
-    throw new Error('GITHUB_TOKEN is required for the real GitHub contribution calendar')
-  }
-
-  const query = `
-    query Contributions($login: String!) {
-      user(login: $login) {
-        contributionsCollection {
-          contributionCalendar {
-            weeks {
-              contributionDays {
-                date
-                contributionCount
-                contributionLevel
-              }
-            }
-          }
-        }
-      }
-    }
-  `
-
-  const response = await fetch('https://api.github.com/graphql', {
-    method: 'POST',
-    headers: {
-      ...headers,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ query, variables: { login: username } }),
+  const response = await fetch(`${gitlabUrl}/users/${encodeURIComponent(username)}/calendar.json`, {
+    headers,
   })
-
   if (!response.ok) {
-    throw new Error(`${response.status} ${response.statusText} for GitHub GraphQL contributions`)
+    throw new Error(`${response.status} ${response.statusText} for GitLab contribution calendar`)
   }
 
-  const data = await response.json()
-  if (data.errors?.length) {
-    throw new Error(data.errors.map((error) => error.message).join('; '))
-  }
+  const counts = await response.json()
+  const days = createEmptyContributions()
+  const max = Math.max(0, ...days.map((day) => counts[day.date] ?? 0))
 
-  const calendar = data.data?.user?.contributionsCollection?.contributionCalendar
-  if (!calendar?.weeks) {
-    throw new Error(`No contribution calendar found for ${username}`)
-  }
-
-  return normalizeContributionCalendar(calendar)
+  return days.map((day) => {
+    const count = counts[day.date] ?? 0
+    return { ...day, count, level: toContributionLevel(count, max) }
+  })
 }
 
 async function syncFile(filename, producer, fallback) {
@@ -296,23 +282,24 @@ async function syncFile(filename, producer, fallback) {
 
 await mkdir(dataDir, { recursive: true })
 
-await syncFile(
-  'github-profile.json',
-  async () => toProfile(await fetchJson(`https://api.github.com/users/${username}`)),
-  defaultProfile,
-)
+await syncFile('gitlab-profile.json', fetchProfile, defaultProfile)
 
 await syncFile(
-  'github-repos.json',
-  async () => toRepos(await fetchJson(`https://api.github.com/users/${username}/repos?per_page=100&sort=updated`)),
+  'gitlab-repos.json',
+  async () =>
+    toRepos(
+      await fetchJson(
+        `${api}/users/${encodeURIComponent(username)}/projects?per_page=100&order_by=last_activity_at&visibility=public`,
+      ),
+    ),
   [],
 )
 
 await syncFile(
-  'github-contributions.json',
+  'gitlab-contributions.json',
   fetchContributionCalendar,
   createEmptyContributions(),
 )
 
-const syncedProfile = await readJson('github-profile.json', defaultProfile)
+const syncedProfile = await readJson('gitlab-profile.json', defaultProfile)
 await downloadFavicon(syncedProfile.profile?.avatar)

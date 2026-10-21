@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { site } from '~/data/site'
-import profileData from '~/data/github-profile.json'
+import profileData from '~/data/gitlab-profile.json'
 
 const profile = profileData.profile
 
@@ -69,7 +69,7 @@ const interests = ['rust', 'c', 'systems programming', 'language design', 'go', 
             target="_blank"
             rel="noopener"
             class="win98-btn text-center font-ui text-[12px] no-underline"
-            >github profile ↗</a
+            >gitlab profile ↗</a
           >
           <a
             :href="`mailto:${site.email}`"
