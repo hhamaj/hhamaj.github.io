@@ -74,39 +74,6 @@ export const languageFallback = {
   order: 99,
 }
 
-/**
- * "Currently Working On" — seeded from real repositories on GitHub.
- * Edit freely; keep notes honest.
- */
-export const currentlyWorkingOn: CurrentlyEntry[] = [
-  {
-    name: 'hhamaj.github.io',
-    note: 'this website. it is always half-finished on purpose.',
-    status: 'In Development',
-    url: 'https://github.com/hhamaj/hhamaj.github.io',
-  },
-  {
-    name: 'ranalang',
-    note: 'a little language experiment in Go. mostly parsers, mostly questions.',
-    status: 'In Development',
-  },
-  {
-    name: 'hsdwm',
-    note: "Hamajj's Super Duper Window Manager. windows, but angry.",
-    status: 'Experimenting',
-  },
-  {
-    name: 'krypton',
-    note: 'hiding messages inside images. pixels keep secrets well.',
-    status: 'On Hold',
-  },
-  {
-    name: 'a rust project (soon™)',
-    note: 'the rust badge on the homepage is a promise, not a product.',
-    status: 'Probably Never Finished',
-  },
-]
-
 export const systemInfo: SystemInfoRow[] = [
   { label: 'OS', value: 'NixOS' },
   { label: 'Editor', value: 'Neovim' },

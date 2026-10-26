@@ -178,7 +178,14 @@ function readmeExcerpt(markdown) {
   return `${text.slice(0, 217).replace(/\s+\S*$/, '')}…`
 }
 
-async function fetchReadmeExcerpt(repoName) {
+const readmeCache = new Map()
+
+function fetchReadmeExcerpt(repoName) {
+  if (!readmeCache.has(repoName)) readmeCache.set(repoName, loadReadmeExcerpt(repoName))
+  return readmeCache.get(repoName)
+}
+
+async function loadReadmeExcerpt(repoName) {
   try {
     const response = await fetch(
       `https://api.github.com/repos/${username}/${repoName}/readme`,
@@ -210,6 +217,38 @@ async function toRepos(repos) {
   }
 
   return mapped
+}
+
+const DAY_MS = 24 * 60 * 60 * 1000
+
+// Status is a guess from how recently the repo was pushed to.
+function statusFromActivity(pushedAt) {
+  const days = (Date.now() - new Date(pushedAt).getTime()) / DAY_MS
+  if (days <= 30) return 'In Development'
+  if (days <= 120) return 'Experimenting'
+  if (days <= 365) return 'On Hold'
+  return 'Probably Never Finished'
+}
+
+async function toCurrently(repos) {
+  const active = repos
+    .filter((repo) => !repo.fork && !repo.archived && repo.name !== username)
+    .sort((a, b) => new Date(b.pushed_at) - new Date(a.pushed_at))
+  const entries = []
+
+  for (const repo of active) {
+    const description = repo.description?.trim()
+    const readme = description ? null : await fetchReadmeExcerpt(repo.name)
+
+    entries.push({
+      name: repo.name,
+      note: description || readme || 'no description yet — the code will have to speak for itself.',
+      status: statusFromActivity(repo.pushed_at ?? repo.updated_at),
+      url: repo.html_url,
+    })
+  }
+
+  return entries
 }
 
 function contributionLevelToNumber(level) {
@@ -302,11 +341,13 @@ await syncFile(
   defaultProfile,
 )
 
-await syncFile(
-  'github-repos.json',
-  async () => toRepos(await fetchJson(`https://api.github.com/users/${username}/repos?per_page=100&sort=updated`)),
-  [],
-)
+let reposRequest
+const fetchRepos = () =>
+  (reposRequest ??= fetchJson(`https://api.github.com/users/${username}/repos?per_page=100&sort=updated`))
+
+await syncFile('github-repos.json', async () => toRepos(await fetchRepos()), [])
+
+await syncFile('github-currently.json', async () => toCurrently(await fetchRepos()), [])
 
 await syncFile(
   'github-contributions.json',

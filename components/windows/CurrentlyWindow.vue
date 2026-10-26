@@ -1,5 +1,8 @@
 <script setup lang="ts">
-import { currentlyWorkingOn, type CurrentStatus } from '~/data/site'
+import type { CurrentlyEntry, CurrentStatus } from '~/data/site'
+import currentlyData from '~/data/github-currently.json'
+
+const currentlyWorkingOn = currentlyData as CurrentlyEntry[]
 
 const statusStyle: Record<CurrentStatus, { bar: string; chip: string; animate?: boolean }> = {
   Experimenting: { bar: 'progress-stripes', chip: 'bg-acc-orange text-black', animate: true },
@@ -56,7 +59,7 @@ const statusStyle: Record<CurrentStatus, { bar: string; chip: string; animate?: 
     </ol>
 
     <p class="mt-4 font-ui text-[11px] text-win-mid">
-      kept in <code class="bg-white px-1">data/site.ts</code> — edit it whenever reality changes.
+      pulled from my github repos on every deploy — status is guessed from the last push.
     </p>
   </div>
 </template>
