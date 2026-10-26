@@ -3,6 +3,8 @@
 name = "hhamaj-terminal-log"
 main = "src/index.js"
 compatibility_date = "2026-10-01"
+workers_dev = true
+preview_urls = false
 
 [vars]
 ALLOWED_ORIGINS = "https://hhamaj.github.io,http://localhost:3000"
