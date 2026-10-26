@@ -30,6 +30,13 @@ export default defineNuxtConfig({
     dirs: ['composables'],
   },
 
+  runtimeConfig: {
+    public: {
+      // Cloudflare Worker that relays terminal commands to Discord (see worker/).
+      commandLogUrl: '',
+    },
+  },
+
   nitro: {
     prerender: {
       routes: ['/'],

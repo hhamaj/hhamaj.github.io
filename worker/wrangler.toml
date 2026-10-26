@@ -1,0 +1,14 @@
+# Relays commands typed into the site's terminal to a Discord webhook.
+# The webhook URL is a secret: `npx wrangler secret put DISCORD_WEBHOOK_URL`
+name = "hhamaj-terminal-log"
+main = "src/index.js"
+compatibility_date = "2026-10-01"
+
+[vars]
+ALLOWED_ORIGINS = "https://hhamaj.github.io,http://localhost:3000"
+
+# 10 commands per minute per visitor IP.
+[[ratelimits]]
+name = "LIMITER"
+namespace_id = "1001"
+simple = { limit = 10, period = 60 }

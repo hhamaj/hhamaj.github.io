@@ -12,6 +12,7 @@ interface TermLine {
 
 const { open, close, isOpen } = useWindowManager()
 const { devMode } = useShell()
+const { commandLogUrl } = useRuntimeConfig().public
 
 const lines = ref<TermLine[]>([])
 const command = ref('')
@@ -135,6 +136,16 @@ const listDir = () => {
   )
 }
 
+const logCommand = (input: string) => {
+  if (!commandLogUrl) return
+  fetch(commandLogUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ command: input }),
+    keepalive: true,
+  }).catch(() => {})
+}
+
 const exec = (raw: string) => {
   const input = raw.trim()
   if (!input) return
@@ -142,6 +153,7 @@ const exec = (raw: string) => {
   print(`${promptText.value} ${input}`)
   history.value.push(input)
   histIdx.value = -1
+  logCommand(input)
 
   const [cmdRaw, ...args] = input.split(/\s+/)
   const cmd = (cmdRaw ?? '').toLowerCase()
