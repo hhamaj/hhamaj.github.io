@@ -65,6 +65,14 @@ export default defineNuxtConfig({
           href: 'https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap',
         },
       ],
+      script: [
+        {
+          // hide the boot screen before first paint once it has played this session
+          innerHTML:
+            "try{if(sessionStorage.getItem('hamza98:booted')==='1')document.documentElement.classList.add('booted')}catch(e){}",
+          tagPosition: 'head',
+        },
+      ],
     },
   },
 })

@@ -6,6 +6,8 @@ const runOpen = ref(false)
 const shutDown = ref(false)
 const devMode = ref(false)
 const jukeboxOpen = ref(false)
+/** true while the boot screen covers the desktop (SSR starts booting) */
+const booting = ref(true)
 
 export const useShell = () => {
   const toggleStartMenu = () => {
@@ -38,7 +40,12 @@ export const useShell = () => {
   }
 
   const restartSite = () => {
+    booting.value = true
     shutDown.value = false
+  }
+
+  const finishBoot = () => {
+    booting.value = false
   }
 
   const enableDevMode = () => {
@@ -55,12 +62,14 @@ export const useShell = () => {
     shutDown,
     devMode,
     jukeboxOpen,
+    booting,
     toggleStartMenu,
     closeStartMenu,
     openRun,
     closeRun,
     shutDownSite,
     restartSite,
+    finishBoot,
     enableDevMode,
     toggleJukebox,
   }

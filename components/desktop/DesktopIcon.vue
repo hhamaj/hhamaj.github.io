@@ -24,6 +24,7 @@ const activate = () => launch(props.id)
 <template>
   <button
     type="button"
+    :data-icon-id="id"
     class="on-dark group flex w-[86px] flex-col items-center gap-1 rounded-[2px] p-1.5 text-center"
     :aria-label="`Open ${label}`"
     @click="activate"

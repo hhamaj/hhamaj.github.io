@@ -67,6 +67,7 @@ onUnmounted(() => {
         v-for="win in openWindows"
         :key="win.id"
         type="button"
+        :data-taskbar-id="win.id"
         class="win98-btn flex min-w-0 max-w-[168px] flex-1 items-center gap-1.5 px-1.5 text-left"
         :data-pressed="activeId === win.id && !win.minimized"
         :aria-label="`Switch to ${windowDefMap[win.id]?.title}`"

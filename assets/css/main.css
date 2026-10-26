@@ -309,6 +309,50 @@
   }
 }
 
+/* ---------------- Boot screen ---------------- */
+
+/* set by the inline head script when the boot already played this session */
+html.booted .boot-screen {
+  display: none;
+}
+
+/* ---------------- Window zoom rectangle (open / minimize) ---------------- */
+
+.zoom-rect {
+  position: fixed;
+  z-index: 9700;
+  pointer-events: none;
+  border: 2px solid #000080;
+  background: linear-gradient(90deg, #000080 0%, #1084d0 100%) top / 100% 18px no-repeat;
+}
+
+/* ---------------- Context menu ---------------- */
+
+.ctx-item {
+  @apply flex w-full items-center gap-1 whitespace-nowrap py-[3px] pl-1 pr-2 text-left font-ui text-[12px] text-black outline-none;
+}
+
+.ctx-item:focus,
+.ctx-item[data-open='true'] {
+  background: #000080;
+  color: #ffffff;
+}
+
+.ctx-item[aria-disabled='true'] {
+  color: #808080;
+  text-shadow: 1px 1px 0 #ffffff;
+}
+
+.ctx-item[aria-disabled='true']:focus {
+  text-shadow: none;
+}
+
+.ctx-sep {
+  margin: 3px 2px;
+  border-top: 1px solid #808080;
+  border-bottom: 1px solid #ffffff;
+}
+
 /* ---------------- Reduced motion ---------------- */
 
 @media (prefers-reduced-motion: reduce) {

@@ -2,6 +2,7 @@
 import { computed, nextTick, ref, watch } from 'vue'
 import { useWindowManager } from '~/composables/useWindowManager'
 import { windowDefMap } from '~/data/windows'
+import { rectOf, zoomRect } from '~/composables/useZoomRect'
 
 const props = defineProps<{ id: string }>()
 
@@ -26,6 +27,51 @@ watch(
   },
   { flush: 'post' }
 )
+
+// Open / restore / minimize / close animations (desktop only).
+let hiddenByMinimize = false
+
+const onEnter = (el: Element, done: () => void) => {
+  if (!isDesktop.value) return done()
+  const source = hiddenByMinimize
+    ? rectOf(`[data-taskbar-id="${props.id}"]`)
+    : rectOf(`[data-icon-id="${props.id}"]`)
+  hiddenByMinimize = false
+  if (!source) return done()
+  const node = el as HTMLElement
+  node.style.visibility = 'hidden'
+  zoomRect(source, node.getBoundingClientRect()).then(() => {
+    node.style.visibility = ''
+    done()
+  })
+}
+
+const onLeave = (el: Element, done: () => void) => {
+  hiddenByMinimize = Boolean(win.value?.open && win.value.minimized)
+  if (!isDesktop.value) return done()
+  const node = el as HTMLElement
+  const from = node.getBoundingClientRect()
+  if (hiddenByMinimize) {
+    const target = rectOf(`[data-taskbar-id="${props.id}"]`)
+    done()
+    if (target) zoomRect(from, target)
+    return
+  }
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return done()
+  node
+    .animate(
+      [
+        { opacity: 1, transform: 'scale(1)' },
+        { opacity: 0, transform: 'scale(0.96)' },
+      ],
+      { duration: 110, easing: 'ease-in' }
+    )
+    .finished.then(done, done)
+}
+
+const onEnterCancelled = (el: Element) => {
+  ;(el as HTMLElement).style.visibility = ''
+}
 
 const positionStyle = computed(() => {
   const w = win.value
@@ -72,70 +118,77 @@ const onPointerDown = (event: PointerEvent) => {
 </script>
 
 <template>
-  <section
-    v-if="win && def"
-    v-show="shown"
-    ref="rootEl"
-    role="dialog"
-    :aria-label="def.title"
-    :aria-modal="false"
-    class="bg-win-gray bevel-out animate-win-open flex flex-col outline-none"
-    :class="[
-      isDesktop ? 'absolute' : 'relative w-full',
-      'pointer-events-auto',
-      isActive ? '' : 'saturate-[0.85]',
-    ]"
-    :style="positionStyle"
-    @pointerdown="onPointerDown"
+  <Transition
+    :css="false"
+    @enter="onEnter"
+    @leave="onLeave"
+    @enter-cancelled="onEnterCancelled"
   >
-    <!-- title bar -->
-    <header
-      data-titlebar
-      class="flex h-[22px] shrink-0 items-center gap-1.5 px-1 select-none"
-      :class="isActive ? 'title-active' : 'title-inactive'"
-      @dblclick="isDesktop && toggleMaximize(props.id)"
+    <section
+      v-if="win && def"
+      v-show="shown"
+      ref="rootEl"
+      role="dialog"
+      :aria-label="def.title"
+      :aria-modal="false"
+      class="bg-win-gray bevel-out animate-win-open flex flex-col outline-none"
+      :class="[
+        isDesktop ? 'absolute' : 'relative w-full',
+        'pointer-events-auto',
+        isActive ? '' : 'saturate-[0.85]',
+      ]"
+      :style="positionStyle"
+      @pointerdown="onPointerDown"
     >
-      <PixelIcon :name="def.icon" class="h-3.5 w-3.5" />
-      <h2
-        class="min-w-0 flex-1 truncate font-ui text-[12px] font-bold leading-none text-white"
+      <!-- title bar -->
+      <header
+        data-titlebar
+        class="flex h-[22px] shrink-0 items-center gap-1.5 px-1 select-none"
+        :class="isActive ? 'title-active' : 'title-inactive'"
+        @dblclick="isDesktop && toggleMaximize(props.id)"
       >
-        {{ def.title }}
-      </h2>
-      <div class="flex items-center gap-[2px]">
-        <button
-          type="button"
-          class="title-btn"
-          :aria-label="`Minimize ${def.title}`"
-          @click.stop="minimize(props.id)"
+        <PixelIcon :name="def.icon" class="h-3.5 w-3.5" />
+        <h2
+          class="min-w-0 flex-1 truncate font-ui text-[12px] font-bold leading-none text-white"
         >
-          <span class="mt-[3px] block h-[2px] w-[7px] bg-black" />
-        </button>
-        <button
-          v-if="isDesktop"
-          type="button"
-          class="title-btn"
-          :aria-label="`${win.maximized ? 'Restore' : 'Maximize'} ${def.title}`"
-          @click.stop="toggleMaximize(props.id)"
-        >
-          <span class="block h-[7px] w-[8px] border-[1px] border-t-[2px] border-black" />
-        </button>
-        <button
-          type="button"
-          class="title-btn"
-          :aria-label="`Close ${def.title}`"
-          @click.stop="close(props.id)"
-        >
-          <span class="font-ui text-[10px] font-bold leading-none">✕</span>
-        </button>
+          {{ def.title }}
+        </h2>
+        <div class="flex items-center gap-[2px]">
+          <button
+            type="button"
+            class="title-btn"
+            :aria-label="`Minimize ${def.title}`"
+            @click.stop="minimize(props.id)"
+          >
+            <span class="mt-[3px] block h-[2px] w-[7px] bg-black" />
+          </button>
+          <button
+            v-if="isDesktop"
+            type="button"
+            class="title-btn"
+            :aria-label="`${win.maximized ? 'Restore' : 'Maximize'} ${def.title}`"
+            @click.stop="toggleMaximize(props.id)"
+          >
+            <span class="block h-[7px] w-[8px] border-[1px] border-t-[2px] border-black" />
+          </button>
+          <button
+            type="button"
+            class="title-btn"
+            :aria-label="`Close ${def.title}`"
+            @click.stop="close(props.id)"
+          >
+            <span class="font-ui text-[10px] font-bold leading-none">✕</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- optional menu bar -->
+      <slot name="menu" />
+
+      <!-- client area -->
+      <div class="min-h-0 flex-1 overflow-x-hidden overflow-y-auto">
+        <slot />
       </div>
-    </header>
-
-    <!-- optional menu bar -->
-    <slot name="menu" />
-
-    <!-- client area -->
-    <div class="min-h-0 flex-1 overflow-x-hidden overflow-y-auto">
-      <slot />
-    </div>
-  </section>
+    </section>
+  </Transition>
 </template>
