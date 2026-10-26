@@ -1,13 +1,13 @@
 {
-  "name": "hamajj-gitlab-io",
+  "name": "hhamaj-github-io",
   "type": "module",
   "private": true,
   "scripts": {
-    "sync:gitlab-data": "node scripts/generate-gitlab-data.mjs",
-    "prebuild": "node scripts/generate-gitlab-data.mjs",
+    "sync:github-data": "node scripts/generate-github-data.mjs",
+    "prebuild": "node scripts/generate-github-data.mjs",
     "build": "nuxt build",
     "dev": "nuxt dev",
-    "pregenerate": "node scripts/generate-gitlab-data.mjs",
+    "pregenerate": "node scripts/generate-github-data.mjs",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",

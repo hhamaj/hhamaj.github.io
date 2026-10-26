@@ -1,8 +1,8 @@
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
 
-// The sync script saves the GitLab avatar as favicon.png / favicon.jpg
-// (format depends on what GitLab serves); fall back to the classic icon.
+// The sync script saves the GitHub avatar as favicon.png / favicon.jpg
+// (format depends on what GitHub serves); fall back to the classic icon.
 const publicDir = join(process.cwd(), 'public')
 const icon = existsSync(join(publicDir, 'favicon.png'))
   ? { rel: 'icon', type: 'image/png', href: '/favicon.png' }

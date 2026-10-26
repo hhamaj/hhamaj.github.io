@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import reposData from '~/data/gitlab-repos.json'
+import reposData from '~/data/github-repos.json'
 import { languageMeta, languageFallback } from '~/data/site'
 import { useWindowManager } from '~/composables/useWindowManager'
 
@@ -61,7 +61,7 @@ const { open } = useWindowManager()
           view activity
         </button>
         <a
-          href="https://gitlab.com/users/hamajj/projects"
+          href="https://github.com/hhamaj?tab=repositories"
           target="_blank"
           rel="noopener"
           class="win98-btn text-[12px] no-underline"
@@ -105,7 +105,7 @@ const { open } = useWindowManager()
               >
             </p>
             <p v-else class="font-ui text-[12px] italic leading-relaxed text-win-mid">
-              (no description on gitlab — it is a mystery, like all good code)
+              (no description on github — it is a mystery, like all good code)
             </p>
 
             <div v-if="repo.topics?.length" class="flex flex-wrap gap-1">

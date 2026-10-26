@@ -156,7 +156,7 @@ const exec = (raw: string) => {
         '  sysinfo          machine details',
         '  date             what day is it',
         '  open <window>    about, projects, currently, guestbook, links, ...',
-        '  gitlab           open gitlab in a new tab',
+        '  github           open github in a new tab',
         '  mail             send an email',
         '  color g | a      green or amber phosphor',
         '  clear            clear the screen',
@@ -213,10 +213,9 @@ const exec = (raw: string) => {
       break
     }
 
-    case 'gitlab':
     case 'github':
-      print({ text: 'opening https://gitlab.com/hamajj ...', tone: 'accent' })
-      window.open(site.gitlab, '_blank', 'noopener')
+      print({ text: 'opening https://github.com/hhamaj ...', tone: 'accent' })
+      window.open(site.github, '_blank', 'noopener')
       print('')
       break
 

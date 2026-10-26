@@ -1,7 +1,7 @@
 /**
  * All hand-written site content lives here — presentation components import
- * from this file and never hardcode copy. Machine-generated GitLab data stays
- * in the sibling gitlab-*.json files.
+ * from this file and never hardcode copy. Machine-generated GitHub data stays
+ * in the sibling github-*.json files.
  */
 
 export type CurrentStatus =
@@ -37,7 +37,7 @@ export const site = {
     'currently learning: systems programming, compilers, graphics, and whatever rabbit hole i fall into next.',
   ],
   email: 'mehmethamzaakca@tutamail.com',
-  gitlab: 'https://gitlab.com/hamajj',
+  github: 'https://github.com/hhamaj',
   marquee:
     '~*~ welcome to my homepage ~*~ this site is best viewed at 800x600 ~*~ you are visitor number 000001 ~*~ sign my guestbook ~*~ under construction since 2026 ~*~',
 }
@@ -75,15 +75,15 @@ export const languageFallback = {
 }
 
 /**
- * "Currently Working On" — seeded from real repositories.
+ * "Currently Working On" — seeded from real repositories on GitHub.
  * Edit freely; keep notes honest.
  */
 export const currentlyWorkingOn: CurrentlyEntry[] = [
   {
-    name: 'hamajj.gitlab.io',
+    name: 'hhamaj.github.io',
     note: 'this website. it is always half-finished on purpose.',
     status: 'In Development',
-    url: 'https://gitlab.com/hamajj/hamajj.gitlab.io',
+    url: 'https://github.com/hhamaj/hhamaj.github.io',
   },
   {
     name: 'ranalang',

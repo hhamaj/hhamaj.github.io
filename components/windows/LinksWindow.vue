@@ -7,9 +7,9 @@ const { open } = useWindowManager()
 const links = [
   {
     icon: 'globe' as const,
-    title: 'gitlab.com/hamajj',
+    title: 'github.com/hhamaj',
     note: 'the repos, the commits, the occasional abandoned idea',
-    href: site.gitlab,
+    href: site.github,
   },
   {
     icon: 'mail' as const,
@@ -19,9 +19,9 @@ const links = [
   },
   {
     icon: 'floppy' as const,
-    title: 'hamajj.gitlab.io (source)',
+    title: 'hhamaj.github.io (source)',
     note: 'this very website, in all its hand-made glory',
-    href: 'https://gitlab.com/hamajj/hamajj.gitlab.io',
+    href: 'https://github.com/hhamaj/hhamaj.github.io',
   },
 ]
 

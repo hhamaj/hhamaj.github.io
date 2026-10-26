@@ -49,9 +49,9 @@ const run = () => {
     return
   }
 
-  if (raw === 'gitlab' || raw === 'github' || raw === 'hamajj') {
+  if (raw === 'github' || raw === 'hhamaj' || raw === 'hamajj') {
     closeRun()
-    window.open(site.gitlab, '_blank', 'noopener')
+    window.open(site.github, '_blank', 'noopener')
     return
   }
 
@@ -134,7 +134,7 @@ const onKeydown = (event: KeyboardEvent) => {
               spellcheck="false"
             />
             <p class="mt-2 font-ui text-[11px] text-win-mid">
-              try: {{ placeholders }}, gitlab, mail… or something that isn't there.
+              try: {{ placeholders }}, github, mail… or something that isn't there.
             </p>
           </div>
         </div>

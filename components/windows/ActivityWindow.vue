@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import contributionsData from '~/data/gitlab-contributions.json'
+import contributionsData from '~/data/github-contributions.json'
 
 interface ContributionDay {
   date: string
@@ -136,7 +136,7 @@ const showTooltip = (day: ContributionDay, event: MouseEvent) => {
             :style="{ backgroundColor: color, boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.25)' }"
           />
           <span class="ml-1">More</span>
-          <span class="ml-4 italic">refreshed on every deploy — straight from the gitlab api</span>
+          <span class="ml-4 italic">refreshed on every deploy — straight from the github api</span>
         </div>
       </div>
     </div>
